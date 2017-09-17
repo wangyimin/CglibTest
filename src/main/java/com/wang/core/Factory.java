@@ -15,7 +15,7 @@ import net.sf.cglib.proxy.InterfaceMaker;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
-public class Factory{
+public class Factory {
 	private Class<?> clazz;
 	
 	private List<Class<?>> setters = new ArrayList<Class<?>>();
