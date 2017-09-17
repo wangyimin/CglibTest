@@ -17,116 +17,115 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class Factory {
 	private Class<?> clazz;
-	
+
 	private List<Class<?>> setters = new ArrayList<Class<?>>();
-	
+
 	@SuppressWarnings("unchecked")
-	public <T> T getInstance(Class<T> clazz){
-		if (clazz == null){
+	public <T> T getInstance(Class<T> clazz) {
+		if (clazz == null) {
 			throw new NullPointerException();
 		}
-		
+
 		this.clazz = clazz;
-		
+
 		Enhancer e = new Enhancer();
-        e.setSuperclass(clazz);
-        e.setCallback(new Interceptor());
-        e.setInterfaces(getInterfaces());
-        
-		return (T)(e.create());
+		e.setSuperclass(clazz);
+		e.setCallback(new Interceptor());
+		e.setInterfaces(getInterfaces());
+
+		return (T) (e.create());
 	}
-	
-	private String getSetterByFieldName(String prop){
+
+	private String getSetterByFieldName(String prop) {
 		return "set" + prop.substring(0, 1).toUpperCase() + prop.substring(1);
 	}
-	
-	private boolean hasSetter(String prop){
+
+	private boolean hasSetter(String prop) {
 		boolean r = false;
 
-		if (prop == null || "".equals(prop)){
+		if (prop == null || "".equals(prop)) {
 			throw new NullPointerException();
 		}
 
-		try{
+		try {
 			Field f = clazz.getDeclaredField(prop);
 			clazz.getDeclaredMethod(getSetterByFieldName(prop), f.getType());
-			
+
 			return true;
-		}catch(Exception e){
+		} catch (Exception e) {
 		}
 
 		return r;
 	}
 
-	private Class<?>[] getInterfaces(){
+	private Class<?>[] getInterfaces() {
 		for (Field f : clazz.getDeclaredFields()) {
-			if (!hasSetter(f.getName())){
+			if (!hasSetter(f.getName())) {
 				InterfaceMaker im = new InterfaceMaker();
-		        im.add(new Signature(
-		        		getSetterByFieldName(f.getName()),
-		        		Type.VOID_TYPE, 
-		        		new Type[] {Type.getType(f.getType())}),
-		        		null);
-		        Class<?> interfaces = im.create();
-		        setters.add(interfaces);
+				im.add(new Signature(getSetterByFieldName(f.getName()),
+						Type.VOID_TYPE,
+						new Type[] { Type.getType(f.getType()) }), null);
+				Class<?> interfaces = im.create();
+				setters.add(interfaces);
 			}
 		}
-		
-		if (!setters.isEmpty()){
+
+		if (!setters.isEmpty()) {
 			Class<?>[] r = new Class<?>[setters.size()];
 			return setters.toArray(r);
 		}
-		
-		return new Class[]{};
-		
+
+		return new Class[] {};
+
 	}
 }
 
-class Interceptor implements MethodInterceptor{
-    public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-    	Object r = Type.VOID;
-    	
-    	_before(obj, method, args);
+class Interceptor implements MethodInterceptor {
+	public Object intercept(Object obj, Method method, Object[] args,
+			MethodProxy proxy) throws Throwable {
+		Object r = Type.VOID;
 
-    	if (method.getName().contains("set")){
+		_before(obj, method, args);
+
+		if (method.getName().contains("set")) {
 			Class<?> clazz = obj.getClass().getSuperclass();
-			Field f = clazz.getDeclaredField(
-					method.getName().substring(3,4).toLowerCase() + method.getName().substring(4));
+			Field f = clazz.getDeclaredField(method.getName().substring(3, 4)
+					.toLowerCase()
+					+ method.getName().substring(4));
 			f.setAccessible(true);
 			f.set(obj, args[0]);
-		}else{
+		} else {
 			r = proxy.invokeSuper(obj, args);
 		}
-    	
-        _after(obj, method, args);
-        return r;
-    }
-    
-    private void _before(Object obj, Method method, Object[] args)
-    {
-    	try{
-            InjectLogging attr = method.getAnnotation(InjectLogging.class);
-            if (attr != null){ 
-            	Class<? extends WrapperImpl> clazz = attr.using();
-            	clazz.newInstance()._before(new Object[]{method.getName(), args});
-            }
-    	}catch (Exception e){
-    		return;
-    	}
-    }
-    
-    private void _after(Object obj, Method method, Object[] args)
-    {
-    	try{
-            InjectLogging attr = method.getAnnotation(InjectLogging.class);
-            if (attr != null){ 
-            	Class<? extends WrapperImpl> clazz = attr.using();
-            	clazz.newInstance()._after(new Object[]{method.getName(), args});
-            }
-    	}catch (Exception e){
-    		return;
-    	}
-    }
+
+		_after(obj, method, args);
+		return r;
+	}
+
+	private void _before(Object obj, Method method, Object[] args) {
+		try {
+			InjectLogging attr = method.getAnnotation(InjectLogging.class);
+			if (attr != null) {
+				Class<? extends WrapperImpl> clazz = attr.using();
+				clazz.newInstance()._before(
+						new Object[] { method.getName(), args });
+			}
+		} catch (Exception e) {
+			return;
+		}
+	}
+
+	private void _after(Object obj, Method method, Object[] args) {
+		try {
+			InjectLogging attr = method.getAnnotation(InjectLogging.class);
+			if (attr != null) {
+				Class<? extends WrapperImpl> clazz = attr.using();
+				clazz.newInstance()._after(
+						new Object[] { method.getName(), args });
+			}
+		} catch (Exception e) {
+			return;
+		}
+	}
 
 }
-
