@@ -103,29 +103,20 @@ class Interceptor implements MethodInterceptor {
 	}
 
 	private void _before(Object obj, Method method, Object[] args) throws Throwable{
-		try {
-			InjectLogging attr = method.getAnnotation(InjectLogging.class);
-			if (attr != null) {
-				Class<? extends WrapperImpl> clazz = attr.using();
-				clazz.newInstance()._before(
-						new Object[] { method.getName(), args });
-			}
-		} catch (Exception e) {
-			throw e;
+		InjectLogging attr = method.getAnnotation(InjectLogging.class);
+		if (attr != null) {
+			Class<? extends WrapperImpl> clazz = attr.using();
+			clazz.newInstance()._before(
+					new Object[] { method.getName(), args });
 		}
 	}
 
 	private void _after(Object obj, Method method, Object[] args) throws Throwable{
-		try {
-			InjectLogging attr = method.getAnnotation(InjectLogging.class);
-			if (attr != null) {
-				Class<? extends WrapperImpl> clazz = attr.using();
-				clazz.newInstance()._after(
-						new Object[] { method.getName(), args });
-			}
-		} catch (Exception e) {
-			throw e;
+		InjectLogging attr = method.getAnnotation(InjectLogging.class);
+		if (attr != null) {
+			Class<? extends WrapperImpl> clazz = attr.using();
+			clazz.newInstance()._after(
+					new Object[] { method.getName(), args });
 		}
 	}
-
 }
