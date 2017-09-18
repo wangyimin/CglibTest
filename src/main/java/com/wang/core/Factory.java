@@ -102,7 +102,7 @@ class Interceptor implements MethodInterceptor {
 		return r;
 	}
 
-	private void _before(Object obj, Method method, Object[] args) {
+	private void _before(Object obj, Method method, Object[] args) throws Throwable{
 		try {
 			InjectLogging attr = method.getAnnotation(InjectLogging.class);
 			if (attr != null) {
@@ -111,11 +111,11 @@ class Interceptor implements MethodInterceptor {
 						new Object[] { method.getName(), args });
 			}
 		} catch (Exception e) {
-			return;
+			throw e;
 		}
 	}
 
-	private void _after(Object obj, Method method, Object[] args) {
+	private void _after(Object obj, Method method, Object[] args) throws Throwable{
 		try {
 			InjectLogging attr = method.getAnnotation(InjectLogging.class);
 			if (attr != null) {
@@ -124,7 +124,7 @@ class Interceptor implements MethodInterceptor {
 						new Object[] { method.getName(), args });
 			}
 		} catch (Exception e) {
-			return;
+			throw e;
 		}
 	}
 
